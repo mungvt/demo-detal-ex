@@ -72,7 +72,7 @@ async def connect_to_delta_exchange(websocket_url, products, order_books):
                     for product, order_book in order_books.items():
                         update_order_books(product, order_book)
             elif message["type"] == "heartbeat":
-                logging.info(f'Healthy check, connection is alive!')
+                logging.info(f'Healthy check, connection is still alive!')
             else:
                 logging.info(message)
 
@@ -108,7 +108,7 @@ async def main():
         try:
             logging.info(f"Connection to delta exchange: {websocket_url}...")
             await connect_to_delta_exchange(websocket_url, products, order_books)
-        except websockets.exceptions.ConnectionClosed:
+        except websockets.ConnectionClosed:
             # Reconnect in case of connection drop
             logging.info("Connection closed. Reconnecting...")
             await asyncio.sleep(5)  # Wait before reconnecting
