@@ -13,7 +13,13 @@ This is an asynchronous WebSocket client that connects to the Delta exchange and
 1. Update the `websocket_url` variable with the WebSocket URL for the Delta exchange.
 2. Define the products to subscribe to in the `products` list.
 3. Install dependencies: `pip3 install -r requirements.txt`
-4. Run the script `python3 main.py`.
+4. Setup env: `cp .env.example .env`
+5. Run the script `python3 app.py`. 
+6. Click url link on console -> show a basic UI. 
+7. Click **Subscribe** button to start tracking the order books. 
+8. Click **Unsubscribe** button to test what happen when the websocket connection drop. The UI bellow:
+
+![OpenAI Logo](docs/ui.png)
 
 The script will establish a connection to the Delta exchange WebSocket server and start subscribing to the order book channels for the specified products. It will continuously listen for incoming messages and update the order book data accordingly. The buy and sell order book data will be saved as separate CSV files in the `./data/` directory.
 
@@ -24,10 +30,6 @@ You can modify the script to suit your needs:
 - Update the WebSocket URL to connect to a different exchange or server.
 - Modify the list of products to subscribe to.
 - Customize the output directory for saving the order book CSV files.
-
-## Contributing
-
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
 
 ## License
 
