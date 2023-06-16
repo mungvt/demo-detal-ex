@@ -16,8 +16,17 @@ def logging_basic_config(filename=None):
 
 logging_basic_config()
 
+# WebSocket URL for Delta exchange
+websocket_url = "wss://socket.delta.exchange"
 
-async def subscribe_to_orderbook(websocket, products):
+# Define the products to subscribe to
+products = ["C-BTC-26000-230623", "P-BTC-26000-230623"]
+
+# Set up the order book dictionary to store the order book for each product
+order_books = {product: {"buy": {}, "sell": {}} for product in products}
+
+
+async def subscribe_to_orderbook():
     # Create the subscription message
     subscribe_msg = {
         "type": "subscribe",
@@ -33,7 +42,24 @@ async def subscribe_to_orderbook(websocket, products):
     await websocket.send(json.dumps(subscribe_msg))
 
 
-async def process_orderbook_message(message, order_books):
+async def unsubscribe_to_orderbook():
+    # Create the subscription message
+    subscribe_msg = {
+        "type": "unsubscribe",
+        "payload": {
+            "channels": [
+                {
+                    "name": "l2_orderbook",
+                    "symbols": products,
+                }
+            ]
+        }
+    }
+    await websocket.send(json.dumps(subscribe_msg))
+    await websocket.close()
+
+
+async def process_orderbook_message(message):
     product = message.get("symbol")
     # Update the order book for the respective product
     new_buy, new_sell = {}, {}
@@ -45,36 +71,38 @@ async def process_orderbook_message(message, order_books):
     order_books[product]["sell"].update(new_sell)
 
 
-async def heartbeat(websocket):
+async def heartbeat():
     while True:
         heartbeat_msg = {"type": "enable_heartbeat"}
         await websocket.send(json.dumps(heartbeat_msg))
         await asyncio.sleep(5)  # Send heartbeat every 5 seconds
 
 
-async def connect_to_delta_exchange(websocket_url, products, order_books):
-    async with websockets.connect(websocket_url) as websocket:
-        # Subscribe to the order book channels for products
-        await subscribe_to_orderbook(websocket, products)
+async def connect_to_delta_exchange():
+    global websocket
+    websocket = await websockets.connect(websocket_url)
+    # Subscribe to the order book channels for products
+    await subscribe_to_orderbook()
 
-        # Start the heartbeat to keep the connection alive
-        asyncio.create_task(heartbeat(websocket))
+    # Start the heartbeat to keep the connection alive
+    asyncio.create_task(heartbeat())
 
-        # Listen for incoming messages
-        while True:
-            message = await websocket.recv()
-            message = json.loads(message)
-            if message["type"] == "l2_orderbook":
-                logging.info(f'New messages for product {message.get("symbol")} at timestamp: {message.get("timestamp")}')
-                product = message.get("symbol")
-                if product and product in products:
-                    await process_orderbook_message(message, order_books)
-                    for product, order_book in order_books.items():
-                        update_order_books(product, order_book)
-            elif message["type"] == "heartbeat":
-                logging.info(f'Healthy check, connection is still alive!')
-            else:
-                logging.info(message)
+    # Listen for incoming messages
+    while True:
+        message = await websocket.recv()
+        message = json.loads(message)
+        if message["type"] == "l2_orderbook":
+            logging.info(
+                f'New messages for product {message.get("symbol")} at timestamp: {message.get("timestamp")}')
+            product = message.get("symbol")
+            if product and product in products:
+                await process_orderbook_message(message)
+                for product, order_book in order_books.items():
+                    update_order_books(product, order_book)
+        elif message["type"] == "heartbeat":
+            logging.info(f'Healthy check:{message}')
+        else:
+            logging.info(message)
 
 
 def update_order_books(product, order_book):
@@ -95,23 +123,14 @@ def convert_to_order_book(orders: dict):
 
 
 async def main():
-    # WebSocket URL for Delta exchange
-    websocket_url = "wss://socket.delta.exchange"
-
-    # Define the products to subscribe to
-    products = ["C-BTC-26000-230623", "P-BTC-26000-230623"]
-
-    # Set up the order book dictionary to store the order book for each product
-    order_books = {product: {"buy": {}, "sell": {}} for product in products}
-
     while True:
         try:
             logging.info(f"Connection to delta exchange: {websocket_url}...")
-            await connect_to_delta_exchange(websocket_url, products, order_books)
+            await connect_to_delta_exchange()
         except websockets.ConnectionClosed:
             # Reconnect in case of connection drop
             logging.info("Connection closed. Reconnecting...")
-            await asyncio.sleep(5)  # Wait before reconnecting
+            await asyncio.sleep(50)  # Wait before reconnecting
 
 
 if __name__ == "__main__":

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Subscription</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function subscribe() {
+      $.get("http://0.0.0.0:8000/subscribe", function(data) {
+        alert(data.message);
+      });
+    }
+
+    function unsubscribe() {
+      $.get("http://0.0.0.0:8000/unsubscribe", function(data) {
+        alert(data.message);
+      });
+    }
+
+    function updateTable() {
+      $.get("http://0.0.0.0:8000/refresh_order_books", function(data) {
+        console.log(data)
+        // Clear existing table
+        $('#table-body').empty();
+
+        // Add new rows to the table
+        data.forEach(function(row) {
+          var tableRow = '<tr>';
+          row.forEach(function(cell) {
+            tableRow += '<td>' + cell + '</td>';
+          });
+          tableRow += '</tr>';
+          $('#table-body').append(tableRow);
+        });
+      });
+    }
+
+    // Update table every 1 second
+    setInterval(updateTable, 1000);
+  </script>
+</head>
+<body>
+  <h1>WebSocket Subscription</h1>
+
+  <button onclick="subscribe()">Subscribe</button>
+  <button onclick="unsubscribe()">Unsubscribe</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Price</th>
+        <th>Size</th>
+        <th>Price</th>
+        <th>Size</th>
+        <th>Price</th>
+        <th>Size</th>
+        <th>Price</th>
+        <th>Size</th>
+        <!-- Add more column headers as needed -->
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <!-- Table rows will be dynamically added here -->
+    </tbody>
+  </table>
+</body>
+</html>
