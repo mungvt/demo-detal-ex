@@ -10,10 +10,10 @@ This is an asynchronous WebSocket client that connects to the Delta exchange and
 
 ## Usage
 
-1. Update the `websocket_url` variable with the WebSocket URL for the Delta exchange.
-2. Define the products to subscribe to in the `products` list.
-3. Install dependencies: `pip3 install -r requirements.txt`
-4. Setup env: `cp .env.example .env`
+1. Setup env: `cp .env.example .env`
+2. Update the `WEBSOCKET_URL` parameter with the WebSocket URL for the Delta exchange. 
+3. Define the products to subscribe to in the `PRODUCTS` parameter. 
+4. Install dependencies: `pip3 install -r requirements.txt`
 5. Run the script `python3 app.py`. 
 6. Click url link on console -> show a basic UI. 
 7. Click **Subscribe** button to start tracking the order books. 
