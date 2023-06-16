@@ -4,6 +4,7 @@ import os
 import logging
 import websockets
 import pandas as pd
+from config import BackendConfig
 
 
 def logging_basic_config(filename=None):
@@ -17,10 +18,10 @@ def logging_basic_config(filename=None):
 logging_basic_config()
 
 # WebSocket URL for Delta exchange
-websocket_url = "wss://socket.delta.exchange"
+websocket_url = BackendConfig.WEBSOCKET_URL
 
 # Define the products to subscribe to
-products = ["C-BTC-26000-230623", "P-BTC-26000-230623"]
+products = BackendConfig.PRODUCTS
 
 # Set up the order book dictionary to store the order book for each product
 order_books = {product: {"buy": {}, "sell": {}} for product in products}
@@ -75,7 +76,7 @@ async def heartbeat():
     while True:
         heartbeat_msg = {"type": "enable_heartbeat"}
         await websocket.send(json.dumps(heartbeat_msg))
-        await asyncio.sleep(5)  # Send heartbeat every 5 seconds
+        await asyncio.sleep(BackendConfig.HEARTBEAT_TIME)  # Send heartbeat every 5 seconds
 
 
 async def connect_to_delta_exchange():
@@ -106,11 +107,11 @@ async def connect_to_delta_exchange():
 
 
 def update_order_books(product, order_book):
-    os.makedirs("./data/", exist_ok=True)
+    os.makedirs(BackendConfig.DATA_DIR, exist_ok=True)
     buy_df = convert_to_order_book(order_book["buy"])
     sell_df = convert_to_order_book(order_book["sell"])
-    buy_df.to_csv(f"./data/{product}_buy.csv", index=False)
-    sell_df.to_csv(f"./data/{product}_sell.csv", index=False)
+    buy_df.to_csv(f"{BackendConfig.DATA_DIR}{product}_BUY.csv", index=False)
+    sell_df.to_csv(f"{BackendConfig.DATA_DIR}{product}_SELL.csv", index=False)
 
 
 def convert_to_order_book(orders: dict):
@@ -122,7 +123,7 @@ def convert_to_order_book(orders: dict):
     return df.sort_values('price', ascending=False)
 
 
-async def main():
+async def track_order_books():
     while True:
         try:
             logging.info(f"Connection to delta exchange: {websocket_url}...")
@@ -130,8 +131,4 @@ async def main():
         except websockets.ConnectionClosed:
             # Reconnect in case of connection drop
             logging.info("Connection closed. Reconnecting...")
-            await asyncio.sleep(50)  # Wait before reconnecting
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+            await asyncio.sleep(BackendConfig.RETRY_DELAY)  # Wait before reconnecting

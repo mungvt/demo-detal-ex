@@ -5,20 +5,22 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
+    // var baseUrl = "{{ base_url }}";  // Replace with the dynamic base URL
+
     function subscribe() {
-      $.get("http://0.0.0.0:8000/subscribe", function(data) {
+      $.get("{{base_url}}/subscribe", function(data) {
         alert(data.message);
       });
     }
 
     function unsubscribe() {
-      $.get("http://0.0.0.0:8000/unsubscribe", function(data) {
+      $.get("{{base_url}}/unsubscribe", function(data) {
         alert(data.message);
       });
     }
 
     function updateTable() {
-      $.get("http://0.0.0.0:8000/refresh_order_books", function(data) {
+      $.get("{{base_url}}/refresh_order_books", function(data) {
         console.log(data)
         // Clear existing table
         $('#table-body').empty();
@@ -48,14 +50,14 @@
   <table>
     <thead>
       <tr>
-        <th>Price</th>
-        <th>Size</th>
-        <th>Price</th>
-        <th>Size</th>
-        <th>Price</th>
-        <th>Size</th>
-        <th>Price</th>
-        <th>Size</th>
+        <th>C-BTC-26000-230623_BUY Price</th>
+        <th>C-BTC-26000-230623_BUY Size</th>
+        <th>C-BTC-26000-230623_SELL Price</th>
+        <th>C-BTC-26000-230623_SELL Size</th>
+        <th>P-BTC-26000-230623_BUY Price</th>
+        <th>P-BTC-26000-230623_BUY Size</th>
+        <th>P-BTC-26000-230623_SELL Price</th>
+        <th>P-BTC-26000-230623_SELL Size</th>
         <!-- Add more column headers as needed -->
       </tr>
     </thead>
